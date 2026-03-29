@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ImagePlus, Upload, FolderOpen, Plus, X } from "lucide-react";
 import {
   Popover,
@@ -8,10 +8,18 @@ import {
 
 interface ImageUploadAreaProps {
   onImagesChange?: (images: string[]) => void;
+  initialImages?: string[];
 }
 
-const ImageUploadArea = ({ onImagesChange }: ImageUploadAreaProps) => {
-  const [images, setImages] = useState<string[]>([]);
+const ImageUploadArea = ({ onImagesChange, initialImages }: ImageUploadAreaProps) => {
+  const [images, setImages] = useState<string[]>(initialImages || []);
+
+  // Sync when parent injects images
+  useEffect(() => {
+    if (initialImages && initialImages.length !== images.length) {
+      setImages(initialImages);
+    }
+  }, [initialImages]);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
