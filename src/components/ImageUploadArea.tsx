@@ -42,7 +42,11 @@ const ImageUploadArea = ({ onImagesChange }: ImageUploadAreaProps) => {
   };
 
   const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      onImagesChange?.(next);
+      return next;
+    });
   };
 
   const hasImages = images.length > 0;
