@@ -22,7 +22,11 @@ const ImageUploadArea = ({ onImagesChange }: ImageUploadAreaProps) => {
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () =>
-        setImages((prev) => [...prev, reader.result as string]);
+        setImages((prev) => {
+          const next = [...prev, reader.result as string];
+          onImagesChange?.(next);
+          return next;
+        });
       reader.readAsDataURL(file);
     });
     e.target.value = "";
