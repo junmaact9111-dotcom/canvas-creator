@@ -109,7 +109,7 @@ const ResultDisplay = ({
           ))}
 
           {/* More dropdown */}
-          <DropdownMenu>
+          <DropdownMenu open={moreOpen} onOpenChange={setMoreOpen}>
             <DropdownMenuTrigger asChild>
               <button className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md hover:bg-accent transition-colors">
                 <MoreHorizontal className="w-4 h-4 text-foreground" />
