@@ -15,7 +15,23 @@ import {
   PopoverAnchor,
 } from "@/components/ui/popover";
 
-const AgentDialog = () => {
+interface AgentDialogProps {
+  compact?: boolean;
+  onSubmit?: (data: { prompt: string; ratio: string; images: string[] }) => void;
+  injectedImage?: string | null;
+  injectedPrompt?: string | null;
+  onInjectedImageConsumed?: () => void;
+  onInjectedPromptConsumed?: () => void;
+}
+
+const AgentDialog = ({
+  compact = false,
+  onSubmit,
+  injectedImage,
+  injectedPrompt,
+  onInjectedImageConsumed,
+  onInjectedPromptConsumed,
+}: AgentDialogProps) => {
   const [prompt, setPrompt] = useState("");
   const [genMethod, setGenMethod] = useState("generate");
   const [ratio, setRatio] = useState("1:1");
@@ -28,6 +44,22 @@ const AgentDialog = () => {
   const isFrameMode = isVideo && videoMode === "frame";
   const hasMultipleImages = uploadedImages.length >= 2;
 
+  // Handle injected image from result
+  useEffect(() => {
+    if (injectedImage) {
+      setUploadedImages((prev) => [...prev, injectedImage]);
+      onInjectedImageConsumed?.();
+    }
+  }, [injectedImage]);
+
+  // Handle injected prompt from result
+  useEffect(() => {
+    if (injectedPrompt) {
+      setPrompt((prev) => prev + injectedPrompt);
+      onInjectedPromptConsumed?.();
+    }
+  }, [injectedPrompt]);
+
   const placeholder = isFrameMode
     ? "请描述你想创作的画面内容、运动方式等。例如：一个小女孩，在公园骑单车"
     : hasMultipleImages
@@ -38,7 +70,6 @@ const AgentDialog = () => {
     const value = e.target.value;
     setPrompt(value);
 
-    // Check if user just typed @
     const cursorPos = e.target.selectionStart;
     if (value[cursorPos - 1] === "@" && hasMultipleImages) {
       setMentionOpen(true);
@@ -49,7 +80,6 @@ const AgentDialog = () => {
 
   const handleMentionSelect = (index: number) => {
     const name = `图片${index + 1}`;
-    // Replace the last @ with @图片N
     const lastAtIndex = prompt.lastIndexOf("@");
     if (lastAtIndex !== -1) {
       const newPrompt = prompt.slice(0, lastAtIndex) + `@${name} ` + prompt.slice(lastAtIndex + 1);
@@ -61,9 +91,56 @@ const AgentDialog = () => {
 
   const handleSubmit = () => {
     if (!prompt.trim()) return;
-    console.log("Submit:", { prompt, genMethod, ratio, videoMode });
+    onSubmit?.({ prompt, ratio, images: uploadedImages });
   };
 
+  // ── Compact mode ──
+  if (compact) {
+    return (
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
+          <div className="flex items-center gap-3 px-4 py-3">
+            {/* Tiny uploaded image previews */}
+            {uploadedImages.length > 0 && (
+              <div className="flex items-center -space-x-2 flex-shrink-0">
+                {uploadedImages.slice(0, 3).map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt={`图片${i + 1}`}
+                    className="w-8 h-8 rounded-md object-cover border-2 border-card"
+                    style={{ zIndex: uploadedImages.length - i }}
+                  />
+                ))}
+                {uploadedImages.length > 3 && (
+                  <span className="text-xs text-muted-foreground ml-2">+{uploadedImages.length - 3}</span>
+                )}
+              </div>
+            )}
+
+            {/* Prompt input */}
+            <input
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder={placeholder}
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+            />
+
+            {/* Submit button */}
+            <button
+              onClick={handleSubmit}
+              disabled={!prompt.trim()}
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-40 disabled:hover:scale-100 flex-shrink-0"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Full mode ──
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
@@ -72,7 +149,7 @@ const AgentDialog = () => {
           {isFrameMode ? (
             <FrameUploadArea />
           ) : (
-            <ImageUploadArea onImagesChange={setUploadedImages} />
+            <ImageUploadArea onImagesChange={setUploadedImages} initialImages={uploadedImages} />
           )}
           <div className="flex-1 relative">
             <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
