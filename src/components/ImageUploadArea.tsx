@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ImagePlus, Upload, FolderOpen, Plus, X } from "lucide-react";
 import {
   Popover,
