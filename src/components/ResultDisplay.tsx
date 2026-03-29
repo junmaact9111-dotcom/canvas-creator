@@ -30,6 +30,7 @@ const ResultDisplay = ({
 }: ResultDisplayProps) => {
   const [promptHovered, setPromptHovered] = useState(false);
   const [imageHovered, setImageHovered] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const toolbarItems = [
     { icon: Download, label: "下载", onClick: () => console.log("下载") },
