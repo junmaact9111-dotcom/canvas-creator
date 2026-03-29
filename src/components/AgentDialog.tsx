@@ -44,8 +44,8 @@ const AgentDialog = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="generate">图片生成</SelectItem>
-                <SelectItem value="edit">图片编辑</SelectItem>
-                <SelectItem value="variation">图片变体</SelectItem>
+                <SelectItem value="video">视频生成</SelectItem>
+                <SelectItem value="gif">GIF生成</SelectItem>
               </SelectContent>
             </Select>
 
@@ -56,10 +56,11 @@ const AgentDialog = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="1:1">1:1</SelectItem>
-                <SelectItem value="4:3">4:3</SelectItem>
-                <SelectItem value="3:4">3:4</SelectItem>
+                <SelectItem value="3:2">3:2</SelectItem>
                 <SelectItem value="16:9">16:9</SelectItem>
+                <SelectItem value="20:3">20:3</SelectItem>
                 <SelectItem value="9:16">9:16</SelectItem>
+                <SelectItem value="9:20">9:20</SelectItem>
               </SelectContent>
             </Select>
           </div>
