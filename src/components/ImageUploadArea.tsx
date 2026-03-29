@@ -6,7 +6,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-const ImageUploadArea = () => {
+interface ImageUploadAreaProps {
+  onImagesChange?: (images: string[]) => void;
+}
+
+const ImageUploadArea = ({ onImagesChange }: ImageUploadAreaProps) => {
   const [images, setImages] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
