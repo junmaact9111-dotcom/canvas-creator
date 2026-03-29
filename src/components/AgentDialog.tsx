@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Send, ChevronDown } from "lucide-react";
+import { Send } from "lucide-react";
 import ImageUploadArea from "./ImageUploadArea";
+import FrameUploadArea from "./FrameUploadArea";
 import {
   Select,
   SelectContent,
@@ -13,10 +14,18 @@ const AgentDialog = () => {
   const [prompt, setPrompt] = useState("");
   const [genMethod, setGenMethod] = useState("generate");
   const [ratio, setRatio] = useState("1:1");
+  const [videoMode, setVideoMode] = useState("smart");
+
+  const isVideo = genMethod === "video";
+  const isFrameMode = isVideo && videoMode === "frame";
+
+  const placeholder = isFrameMode
+    ? "请描述你想创作的画面内容、运动方式等。例如：一个小女孩，在公园骑单车"
+    : "上传参考图、输入文字，描述你想要生成的图片";
 
   const handleSubmit = () => {
     if (!prompt.trim()) return;
-    console.log("Submit:", { prompt, genMethod, ratio });
+    console.log("Submit:", { prompt, genMethod, ratio, videoMode });
   };
 
   return (
@@ -24,11 +33,11 @@ const AgentDialog = () => {
       <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
         {/* Main input area */}
         <div className="flex items-start gap-3 p-4 pb-2">
-          <ImageUploadArea />
+          {isFrameMode ? <FrameUploadArea /> : <ImageUploadArea />}
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="上传参考图、输入文字，描述你想要生成的图片"
+            placeholder={placeholder}
             className="flex-1 min-h-[80px] max-h-40 resize-none bg-transparent text-foreground placeholder:text-muted-foreground text-sm leading-relaxed focus:outline-none pt-1"
             rows={3}
           />
@@ -38,7 +47,7 @@ const AgentDialog = () => {
         <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-config">
           <div className="flex items-center gap-2">
             {/* Generation method */}
-            <Select value={genMethod} onValueChange={setGenMethod}>
+            <Select value={genMethod} onValueChange={(v) => { setGenMethod(v); if (v !== "video") setVideoMode("smart"); }}>
               <SelectTrigger className="h-8 w-auto gap-1 border-none bg-card shadow-sm text-xs font-medium px-3 rounded-lg">
                 <SelectValue />
               </SelectTrigger>
@@ -63,6 +72,19 @@ const AgentDialog = () => {
                 <SelectItem value="9:20">9:20</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Video mode - only when video is selected */}
+            {isVideo && (
+              <Select value={videoMode} onValueChange={setVideoMode}>
+                <SelectTrigger className="h-8 w-auto gap-1 border-none bg-card shadow-sm text-xs font-medium px-3 rounded-lg">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="smart">智能参考</SelectItem>
+                  <SelectItem value="frame">首尾帧</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Submit button */}
