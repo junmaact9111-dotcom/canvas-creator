@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Send } from "lucide-react";
 import ImageUploadArea from "./ImageUploadArea";
 import FrameUploadArea from "./FrameUploadArea";
@@ -9,19 +9,55 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverAnchor,
+} from "@/components/ui/popover";
 
 const AgentDialog = () => {
   const [prompt, setPrompt] = useState("");
   const [genMethod, setGenMethod] = useState("generate");
   const [ratio, setRatio] = useState("1:1");
   const [videoMode, setVideoMode] = useState("smart");
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isVideo = genMethod === "video";
   const isFrameMode = isVideo && videoMode === "frame";
+  const hasMultipleImages = uploadedImages.length >= 2;
 
   const placeholder = isFrameMode
     ? "请描述你想创作的画面内容、运动方式等。例如：一个小女孩，在公园骑单车"
-    : "上传参考图、输入文字，描述你想要生成的图片";
+    : hasMultipleImages
+      ? "@参考内容，描述你想如何调整图片"
+      : "上传参考图、输入文字，描述你想要生成的图片";
+
+  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setPrompt(value);
+
+    // Check if user just typed @
+    const cursorPos = e.target.selectionStart;
+    if (value[cursorPos - 1] === "@" && hasMultipleImages) {
+      setMentionOpen(true);
+    } else if (mentionOpen && !value.includes("@")) {
+      setMentionOpen(false);
+    }
+  };
+
+  const handleMentionSelect = (index: number) => {
+    const name = `图片${index + 1}`;
+    // Replace the last @ with @图片N
+    const lastAtIndex = prompt.lastIndexOf("@");
+    if (lastAtIndex !== -1) {
+      const newPrompt = prompt.slice(0, lastAtIndex) + `@${name} ` + prompt.slice(lastAtIndex + 1);
+      setPrompt(newPrompt);
+    }
+    setMentionOpen(false);
+    textareaRef.current?.focus();
+  };
 
   const handleSubmit = () => {
     if (!prompt.trim()) return;
@@ -33,20 +69,51 @@ const AgentDialog = () => {
       <div className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden">
         {/* Main input area */}
         <div className="flex items-start gap-3 p-4 pb-2">
-          {isFrameMode ? <FrameUploadArea /> : <ImageUploadArea />}
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder={placeholder}
-            className="flex-1 min-h-[80px] max-h-40 resize-none bg-transparent text-foreground placeholder:text-muted-foreground text-sm leading-relaxed focus:outline-none pt-1"
-            rows={3}
-          />
+          {isFrameMode ? (
+            <FrameUploadArea />
+          ) : (
+            <ImageUploadArea onImagesChange={setUploadedImages} />
+          )}
+          <div className="flex-1 relative">
+            <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
+              <PopoverAnchor asChild>
+                <textarea
+                  ref={textareaRef}
+                  value={prompt}
+                  onChange={handlePromptChange}
+                  placeholder={placeholder}
+                  className="w-full min-h-[80px] max-h-40 resize-none bg-transparent text-foreground placeholder:text-muted-foreground text-sm leading-relaxed focus:outline-none pt-1"
+                  rows={3}
+                />
+              </PopoverAnchor>
+              <PopoverContent
+                className="w-56 p-1"
+                side="bottom"
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                {uploadedImages.map((src, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleMentionSelect(i)}
+                    className="w-full flex items-center gap-2.5 px-2 py-1.5 text-sm rounded-md hover:bg-secondary transition-colors text-foreground"
+                  >
+                    <img
+                      src={src}
+                      alt={`图片${i + 1}`}
+                      className="w-8 h-8 rounded object-cover flex-shrink-0 border border-border"
+                    />
+                    <span>图片{i + 1}</span>
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         {/* Bottom bar */}
         <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-config">
           <div className="flex items-center gap-2">
-            {/* Generation method */}
             <Select value={genMethod} onValueChange={(v) => { setGenMethod(v); if (v !== "video") setVideoMode("smart"); }}>
               <SelectTrigger className="h-8 w-auto gap-1 border-none bg-card shadow-sm text-xs font-medium px-3 rounded-lg">
                 <SelectValue />
@@ -58,7 +125,6 @@ const AgentDialog = () => {
               </SelectContent>
             </Select>
 
-            {/* Ratio */}
             <Select value={ratio} onValueChange={setRatio}>
               <SelectTrigger className="h-8 w-auto gap-1 border-none bg-card shadow-sm text-xs font-medium px-3 rounded-lg">
                 <SelectValue />
@@ -73,7 +139,6 @@ const AgentDialog = () => {
               </SelectContent>
             </Select>
 
-            {/* Video mode - only when video is selected */}
             {isVideo && (
               <Select value={videoMode} onValueChange={setVideoMode}>
                 <SelectTrigger className="h-8 w-auto gap-1 border-none bg-card shadow-sm text-xs font-medium px-3 rounded-lg">
@@ -87,7 +152,6 @@ const AgentDialog = () => {
             )}
           </div>
 
-          {/* Submit button */}
           <button
             onClick={handleSubmit}
             disabled={!prompt.trim()}
