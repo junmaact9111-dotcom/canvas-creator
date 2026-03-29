@@ -93,7 +93,7 @@ const ResultDisplay = ({
         {/* Hover toolbar */}
         <div
           className={`absolute bottom-3 right-3 flex items-center gap-1 bg-popover/95 backdrop-blur-sm border border-border rounded-lg px-1.5 py-1 shadow-lg transition-all duration-200 ${
-            imageHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+            imageHovered || moreOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
           }`}
         >
           {toolbarItems.map((item) => (
