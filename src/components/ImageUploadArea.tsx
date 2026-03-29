@@ -6,7 +6,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-const ImageUploadArea = () => {
+interface ImageUploadAreaProps {
+  onImagesChange?: (images: string[]) => void;
+}
+
+const ImageUploadArea = ({ onImagesChange }: ImageUploadAreaProps) => {
   const [images, setImages] = useState<string[]>([]);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -18,7 +22,11 @@ const ImageUploadArea = () => {
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () =>
-        setImages((prev) => [...prev, reader.result as string]);
+        setImages((prev) => {
+          const next = [...prev, reader.result as string];
+          onImagesChange?.(next);
+          return next;
+        });
       reader.readAsDataURL(file);
     });
     e.target.value = "";
@@ -34,7 +42,11 @@ const ImageUploadArea = () => {
   };
 
   const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      onImagesChange?.(next);
+      return next;
+    });
   };
 
   const hasImages = images.length > 0;
