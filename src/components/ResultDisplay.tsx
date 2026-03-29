@@ -30,6 +30,7 @@ const ResultDisplay = ({
 }: ResultDisplayProps) => {
   const [promptHovered, setPromptHovered] = useState(false);
   const [imageHovered, setImageHovered] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const toolbarItems = [
     { icon: Download, label: "下载", onClick: () => console.log("下载") },
@@ -92,7 +93,7 @@ const ResultDisplay = ({
         {/* Hover toolbar */}
         <div
           className={`absolute bottom-3 right-3 flex items-center gap-1 bg-popover/95 backdrop-blur-sm border border-border rounded-lg px-1.5 py-1 shadow-lg transition-all duration-200 ${
-            imageHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+            imageHovered || moreOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
           }`}
         >
           {toolbarItems.map((item) => (
@@ -108,7 +109,7 @@ const ResultDisplay = ({
           ))}
 
           {/* More dropdown */}
-          <DropdownMenu>
+          <DropdownMenu open={moreOpen} onOpenChange={setMoreOpen}>
             <DropdownMenuTrigger asChild>
               <button className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-md hover:bg-accent transition-colors">
                 <MoreHorizontal className="w-4 h-4 text-foreground" />
